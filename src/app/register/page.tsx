@@ -1,12 +1,23 @@
-'use client';
+"use client";
 
 import ApplicationForm from "@/components/register-form/application-form";
-import styles from "../page.module.css";
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 
 export default function Home() {
   return (
-      <main className={styles.main}>
+    <Container maxWidth="lg">
+      <Box
+        sx={{
+          my: 4,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <ApplicationForm />
-      </main>
+      </Box>
+    </Container>
   );
 }
