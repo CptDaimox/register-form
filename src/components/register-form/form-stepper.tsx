@@ -117,9 +117,8 @@ export default function FormStepper() {
             sx={{
               p: 3,
               mb: 3,
-              minHeight: 240,
+              minHeight: 180,
               borderRadius: 1.5,
-              border: `dashed 1px #919EAB`,
             }}
           >
             {activeStep === 0 && <StepOne />}
