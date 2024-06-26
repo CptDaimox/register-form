@@ -1,14 +1,16 @@
-import { z as zod } from "zod";
-import React, { useCallback, useState } from "react";
-import { Button, Box, Card } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import FormSummary from "./form-summary";
-import { CustomStepper } from "../stepper";
-import { FormProvider, useForm } from "react-hook-form";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StepOne, StepTwo, StepThree } from "./step-content";
+import { LoadingButton } from "@mui/lab";
+import { Box, Button, Card } from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { z as zod } from "zod";
 import Iconify from "../iconify";
+import { CustomStepper } from "../stepper";
+import FormSummary from "./form-summary";
+import { StepOne, StepThree, StepTwo } from "./step-content";
 
+// ---------------------------------- Form Validation ------------------------------------
 const PersonalDataSchema = zod.object({
   firstName: zod.string().min(1, { message: "Full name is required!" }),
   lastName: zod.string().min(1, { message: "Last name is required!" }),
@@ -34,6 +36,7 @@ const WizardSchema = zod.object({
 
 type WizardSchemaType = zod.infer<typeof WizardSchema>;
 
+// ---------------------------------- Constants ------------------------------------
 const steps = ["Personal Data", "Contact Data", "Salary Indication"];
 
 const defaultValues = {
@@ -42,9 +45,20 @@ const defaultValues = {
   stepThree: { salary: "" },
 };
 
+const STORAGE_KEY = "application";
+
+// ---------------------------------- Main Component ------------------------------------
 export default function FormStepper() {
+  const { state, update, reset } = useLocalStorage(STORAGE_KEY, {
+    completed: false,
+    values: defaultValues,
+  });
+
   const [activeStep, setActiveStep] = useState(0);
-  const [formData, setFormData] = useState<WizardSchemaType>(defaultValues);
+
+  useEffect(() => {
+    if (state.completed) setActiveStep(steps.length);
+  }, [state.completed]);
 
   const methods = useForm<WizardSchemaType>({
     mode: "onChange",
@@ -53,11 +67,10 @@ export default function FormStepper() {
   });
 
   const {
-    reset,
     trigger,
     handleSubmit,
     formState: { isSubmitting },
-    watch,
+    reset: resetForm,
   } = methods;
 
   const handleNext = useCallback(
@@ -75,26 +88,27 @@ export default function FormStepper() {
     },
     [trigger]
   );
-  const handleBack = () =>
+
+  const handleBack = useCallback(() => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  }, []);
 
   const handleReset = useCallback(() => {
     reset();
     setActiveStep(0);
-  }, [reset]);
+    resetForm();
+  }, [reset, resetForm]);
 
   const onSubmit = handleSubmit(async (data) => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 200));
-
-      console.info("DATA", data);
       handleNext();
-      setFormData(data);
+      update("values", data);
+      update("completed", true);
     } catch (error) {
       console.error(error);
     }
   });
-  const completedStep = activeStep === steps.length;
 
   return (
     <Card
@@ -124,52 +138,47 @@ export default function FormStepper() {
             {activeStep === 0 && <StepOne />}
             {activeStep === 1 && <StepTwo />}
             {activeStep === 2 && <StepThree />}
-            {completedStep && <FormSummary formData={formData} />}
+            {activeStep === steps.length && (
+              <FormSummary formData={state.values} />
+            )}
           </Box>
-          {
-            <Box display="flex">
-              {activeStep !== 0 && !completedStep && (
-                <Button onClick={handleBack}>Back</Button>
-              )}
 
-              <Box sx={{ flex: "1 1 auto" }} />
+          <Box display="flex">
+            {activeStep !== 0 && activeStep !== steps.length && (
+              <Button onClick={handleBack}>Back</Button>
+            )}
 
-              {activeStep === 0 && (
-                <Button
-                  variant="contained"
-                  onClick={() => handleNext("stepOne")}
-                >
-                  Next
-                </Button>
-              )}
-              {activeStep === 1 && (
-                <Button
-                  variant="contained"
-                  onClick={() => handleNext("stepTwo")}
-                >
-                  Next
-                </Button>
-              )}
-              {activeStep === 2 && (
-                <LoadingButton
-                  type="submit"
-                  variant="contained"
-                  loading={isSubmitting}
-                >
-                  Save changes
-                </LoadingButton>
-              )}
-              {completedStep && (
-                <Button
-                  variant="outlined"
-                  onClick={handleReset}
-                  startIcon={<Iconify icon="solar:restart-bold" />}
-                >
-                  Reset
-                </Button>
-              )}
-            </Box>
-          }
+            <Box sx={{ flex: "1 1 auto" }} />
+
+            {activeStep < 2 && (
+              <Button
+                variant="contained"
+                onClick={() =>
+                  handleNext(activeStep === 0 ? "stepOne" : "stepTwo")
+                }
+              >
+                Next
+              </Button>
+            )}
+            {activeStep === 2 && (
+              <LoadingButton
+                type="submit"
+                variant="contained"
+                loading={isSubmitting}
+              >
+                Save changes
+              </LoadingButton>
+            )}
+            {activeStep === steps.length && (
+              <Button
+                variant="outlined"
+                onClick={handleReset}
+                startIcon={<Iconify icon="solar:restart-bold" />}
+              >
+                Reset
+              </Button>
+            )}
+          </Box>
         </form>
       </FormProvider>
     </Card>
