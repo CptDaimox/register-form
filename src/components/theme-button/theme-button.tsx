@@ -14,9 +14,9 @@ export default function ThemeButton() {
       color="inherit"
     >
       {theme.palette.mode === "dark" ? (
-        <Iconify icon="solar:moon-sleep-bold" width={24}/>
+        <Iconify icon="solar:sun-bold-duotone" width={24} />
       ) : (
-        <Iconify icon="solar:sun-line-duotone" width={24}/>
+        <Iconify icon="solar:moon-sleep-bold" width={24} />
       )}
     </IconButton>
   );
