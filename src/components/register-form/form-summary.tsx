@@ -1,5 +1,4 @@
-import React from 'react';
-import { Box, Stack, Typography } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 
 interface FormSummaryProps {
   formData: any;

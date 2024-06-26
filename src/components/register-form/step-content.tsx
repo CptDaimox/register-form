@@ -1,11 +1,5 @@
-import { FormControlLabel, Radio, RadioGroup } from "@mui/material";
-import React from "react";
-import { RHFTextField } from "../hook-form/text-field";
 import { RHFRadioGroup } from "../hook-form/radio-group";
-
-interface StepContentProps {
-  step: number;
-}
+import { RHFTextField } from "../hook-form/text-field";
 
 export function StepOne() {
   return (
