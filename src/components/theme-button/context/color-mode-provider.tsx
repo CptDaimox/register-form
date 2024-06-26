@@ -1,11 +1,11 @@
 "use client";
 
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import CssBaseline from "@mui/material/CssBaseline";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { Roboto } from "next/font/google";
+import { ReactNode, useMemo } from "react";
 import { ColorModeContext } from "./color-mode-context";
-import { ReactNode, useState, useMemo } from "react";
-import { useMediaQuery } from "@mui/material";
 
 const roboto = Roboto({
   weight: ["300", "400", "500", "700"],
@@ -13,35 +13,37 @@ const roboto = Roboto({
   display: "swap",
 });
 
+const STORAGE_KEY = "settings";
+
 export default function ColorModeProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-  console.log(prefersDarkMode);
-  const [mode, setMode] = useState<"light" | "dark">(prefersDarkMode ? 'dark' : 'light');
+  const { state, update } = useLocalStorage(STORAGE_KEY, {
+    themeMode: "light",
+  });
 
   const colorMode = useMemo(
     () => ({
       toggleColorMode: () => {
-        setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
+        update("themeMode", state.themeMode === "light" ? "dark" : "light");
       },
     }),
-    []
+    [state.themeMode, update]
   );
 
   const theme = useMemo(
     () =>
       createTheme({
         palette: {
-          mode,
+          mode: state.themeMode,
         },
         typography: {
           fontFamily: roboto.style.fontFamily,
         },
       }),
-    [mode]
+    [state.themeMode]
   );
 
   return (
